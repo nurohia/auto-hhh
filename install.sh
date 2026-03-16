@@ -100,22 +100,22 @@ show_access_url() {
 }
 
 write_xvfb_service() {
-  sudo tee /etc/systemd/system/xvfb.service > /dev/null <<EOF2
+  sudo tee /etc/systemd/system/xvfb.service > /dev/null <<EOF
 [Unit]
 Description=Virtual Framebuffer X Server
 After=network.target
 
 [Service]
 Type=simple
-ExecStartPre=/usr/bin/pkill -f "Xvfb ${DISPLAY_NUM}" || true
-ExecStartPre=/usr/bin/rm -f /tmp/.X99-lock
+ExecStartPre=-/usr/bin/pkill -f Xvfb\\ ${DISPLAY_NUM}
+ExecStartPre=-/usr/bin/rm -f /tmp/.X99-lock
 ExecStart=/usr/bin/Xvfb ${DISPLAY_NUM} -screen 0 ${SCREEN_RES} -ac
 Restart=always
 RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
-EOF2
+EOF
 }
 
 write_abcard_service() {
