@@ -106,6 +106,8 @@ After=network.target
 
 [Service]
 Type=simple
+ExecStartPre=/usr/bin/pkill -f "Xvfb ${DISPLAY_NUM}" || true
+ExecStartPre=/usr/bin/rm -f /tmp/.X99-lock
 ExecStart=/usr/bin/Xvfb ${DISPLAY_NUM} -screen 0 ${SCREEN_RES} -ac
 Restart=always
 RestartSec=3
@@ -353,7 +355,7 @@ menu() {
   while true; do
     clear
     echo "===================================="
-    echo "        ABCard 管理脚本1"
+    echo "        ABCard 管理脚本"
     echo "===================================="
     echo "固定仓库: $REPO_URL"
     echo "安装目录: $APP_DIR"
