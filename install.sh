@@ -1,9 +1,8 @@
-cat > abcard_manager.sh <<'EOF'
 #!/usr/bin/env bash
 set -e
 
 APP_NAME="abcard"
-REPO_URL="https://github.com/nurohia/ABCard.git" 
+REPO_URL="https://github.com/nurohia/ABCard.git"
 APP_DIR="$HOME/ABCard"
 PORT="8503"
 DISPLAY_NUM=":99"
@@ -107,9 +106,10 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStartPre=/usr/bin/pkill -f "Xvfb ${DISPLAY_NUM}" || true
-ExecStartPre=/usr/bin/rm -f /tmp/.X99-lock
-ExecStart=/usr/bin/Xvfb ${DISPLAY_NUM} -screen 0 ${SCREEN_RES} -ac
+ExecStartPre=-/usr/bin/pkill -f "Xvfb ${DISPLAY_NUM}"
+ExecStartPre=-/usr/bin/rm -f /tmp/.X99-lock
+ExecStartPre=-/usr/bin/rm -f /tmp/.X11-unix/X99
+ExecStart=/usr/bin/Xvfb ${DISPLAY_NUM} -screen 0 ${SCREEN_RES} -ac -nolisten tcp
 Restart=always
 RestartSec=3
 
@@ -217,6 +217,9 @@ setup_python_env() {
 
   log "安装 Playwright Chromium"
   "$APP_DIR/.venv/bin/playwright" install chromium
+
+  log "安装 Playwright 系统级底层依赖"
+  "$APP_DIR/.venv/bin/playwright" install-deps chromium
 }
 
 enable_and_start_services() {
@@ -387,4 +390,3 @@ menu() {
 }
 
 menu
-EOF
