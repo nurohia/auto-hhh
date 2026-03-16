@@ -4,7 +4,7 @@ set -e
 APP_NAME="abcard"
 REPO_URL="https://github.com/nurohia/ABCard.git"
 APP_DIR="$HOME/ABCard"
-PORT="48503"
+PORT="8503"
 DISPLAY_NUM=":99"
 SCREEN_RES="1920x1080x24"
 ENTRY_FILE="ui.py"
@@ -76,11 +76,23 @@ ensure_pkg() {
   fi
 }
 
+# 核心重构：多系统自适应 Python 3.12 引擎
 ensure_python312() {
   if need_cmd python3.12; then
-    ok "python3.12 已存在"
-  else
-    log "缺少 python3.12，正在配置源并安装底层环境"
+    ok "python3.12 已存在，跳过安装"
+    return
+  fi
+
+  log "检测到缺少 python3.12，正在执行系统级探针..."
+  
+  local os_type=""
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    os_type=$ID
+  fi
+
+  if [ "$os_type" = "ubuntu" ]; then
+    log "探针反馈：Ubuntu 架构。启用 PPA 高速部署模式..."
     sudo apt-get update
     sudo apt-get install -y software-properties-common
     if need_cmd add-apt-repository; then
@@ -88,7 +100,36 @@ ensure_python312() {
       sudo apt-get update
     fi
     sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
+
+  elif [ "$os_type" = "debian" ]; then
+    log "探针反馈：Debian 架构。启动底层 C 源码静默编译模式 (视 CPU 性能需 3-10 分钟)..."
+    sudo apt-get update
+    sudo apt-get install -y wget build-essential libssl-dev zlib1g-dev \
+      libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev \
+      libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev libffi-dev
+
+    cd /tmp
+    if [ ! -f "Python-3.12.2.tar.xz" ]; then
+      wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tar.xz
+    fi
+    tar -xf Python-3.12.2.tar.xz
+    cd Python-3.12.2
+    
+    ./configure --enable-optimizations
+    make -j"$(nproc 2>/dev/null || echo 1)"
+    sudo make altinstall
+    
+    cd ~
+    rm -rf /tmp/Python-3.12.2 /tmp/Python-3.12.2.tar.xz
+
+    if ! need_cmd python3.12; then
+      err "Python 3.12 源码编译失败，请检查编译日志。"
+    fi
+  else
+    err "未知的操作系统类型 ($os_type)，本环境构建器当前仅适配 Ubuntu 与 Debian。"
   fi
+  
+  ok "Python 3.12 跨平台自适应构建完成！"
 }
 
 get_server_ip() {
