@@ -4,7 +4,7 @@ set -e
 APP_NAME="abcard"
 REPO_URL="https://github.com/nurohia/ABCard.git"
 APP_DIR="$HOME/ABCard"
-PORT="8503"
+PORT="48503"
 DISPLAY_NUM=":99"
 SCREEN_RES="1920x1080x24"
 ENTRY_FILE="ui.py"
@@ -77,7 +77,6 @@ ensure_pkg() {
 }
 
 ensure_uv() {
-  # uv 是由 Rust 编写的新一代极速 Python 依赖管理器，它自带 Python 预编译版本拉取能力
   export PATH="$HOME/.local/bin:$PATH"
   if ! need_cmd uv; then
     log "正在安装现代构建引擎 uv (绕过系统限制)..."
@@ -370,15 +369,13 @@ menu() {
   while true; do
     clear
     echo "===================================="
-    echo "        ABCard 管理脚本 (云原生极速版)"
+    echo "           ABCard 管理脚本          "
     echo "===================================="
     echo "固定仓库: $REPO_URL"
     echo "安装目录: $APP_DIR"
     
     if systemctl is-active --quiet "$APP_NAME" 2>/dev/null; then
       echo "访问地址: http://$(get_server_ip):${PORT}"
-    else
-      echo "访问地址: (服务未运行，安装启动后显示)"
     fi
     
     echo "===================================="
