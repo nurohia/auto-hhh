@@ -4,7 +4,7 @@ set -e
 APP_NAME="abcard"
 REPO_URL="https://github.com/nurohia/ABCard.git"
 APP_DIR="$HOME/ABCard"
-PORT="8503"
+PORT="48503"
 DISPLAY_NUM=":99"
 SCREEN_RES="1920x1080x24"
 ENTRY_FILE="ui.py"
@@ -76,6 +76,21 @@ ensure_pkg() {
   fi
 }
 
+ensure_python312() {
+  if need_cmd python3.12; then
+    ok "python3.12 已存在"
+  else
+    log "缺少 python3.12，正在配置源并安装底层环境"
+    sudo apt-get update
+    sudo apt-get install -y software-properties-common
+    if need_cmd add-apt-repository; then
+      sudo add-apt-repository -y ppa:deadsnakes/ppa || true
+      sudo apt-get update
+    fi
+    sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
+  fi
+}
+
 get_server_ip() {
   local ip=""
   ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
@@ -86,16 +101,18 @@ get_server_ip() {
 }
 
 show_access_url() {
-  local ip
-  ip="$(get_server_ip)"
+  if systemctl is-active --quiet "$APP_NAME" 2>/dev/null; then
+    local ip
+    ip="$(get_server_ip)"
 
-  echo
-  echo "===================================="
-  echo " 浏览器访问地址"
-  echo "------------------------------------"
-  echo " http://${ip}:${PORT}"
-  echo "===================================="
-  echo
+    echo
+    echo "===================================="
+    echo " 浏览器访问地址"
+    echo "------------------------------------"
+    echo " http://${ip}:${PORT}"
+    echo "===================================="
+    echo
+  fi
 }
 
 write_xvfb_service() {
@@ -152,8 +169,7 @@ install_dependencies() {
   log "检查并安装必要系统依赖"
   ensure_cmd_or_pkg git git
   ensure_cmd_or_pkg curl curl
-  ensure_cmd_or_pkg python3 python3
-  ensure_pkg python3-venv
+  ensure_python312
   ensure_pkg xvfb
 }
 
@@ -196,8 +212,8 @@ setup_python_env() {
   cd "$APP_DIR"
 
   if [ ! -d ".venv" ]; then
-    log "创建 Python 虚拟环境"
-    python3 -m venv .venv
+    log "创建 Python 3.12 虚拟环境"
+    python3.12 -m venv .venv
   else
     ok ".venv 已存在，跳过创建"
   fi
@@ -363,7 +379,13 @@ menu() {
     echo "===================================="
     echo "固定仓库: $REPO_URL"
     echo "安装目录: $APP_DIR"
-    echo "访问地址: http://$(get_server_ip):${PORT}"
+    
+    if systemctl is-active --quiet "$APP_NAME" 2>/dev/null; then
+      echo "访问地址: http://$(get_server_ip):${PORT}"
+    else
+      echo "访问地址: (服务未运行，安装启动后显示)"
+    fi
+    
     echo "===================================="
     echo "1) 安装"
     echo "2) 更新"
