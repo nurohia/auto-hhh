@@ -353,7 +353,7 @@ menu() {
   while true; do
     clear
     echo "===================================="
-    echo "        ABCard 管理脚本"
+    echo "        ABCard 管理脚本1"
     echo "===================================="
     echo "固定仓库: $REPO_URL"
     echo "安装目录: $APP_DIR"
