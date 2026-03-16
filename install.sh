@@ -76,6 +76,28 @@ ensure_pkg() {
   fi
 }
 
+get_server_ip() {
+  local ip=""
+  ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  if [ -z "$ip" ]; then
+    ip="服务器IP"
+  fi
+  echo "$ip"
+}
+
+show_access_url() {
+  local ip
+  ip="$(get_server_ip)"
+
+  echo
+  echo "===================================="
+  echo " 浏览器访问地址"
+  echo "------------------------------------"
+  echo " http://${ip}:${PORT}"
+  echo "===================================="
+  echo
+}
+
 write_xvfb_service() {
   sudo tee /etc/systemd/system/xvfb.service > /dev/null <<EOF
 [Unit]
@@ -108,8 +130,10 @@ Type=simple
 User=${user_name}
 WorkingDirectory=${APP_DIR}
 Environment=DISPLAY=${DISPLAY_NUM}
+Environment=BROWSER=none
+Environment=STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 Environment=PATH=${APP_DIR}/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=${APP_DIR}/.venv/bin/streamlit run ${ENTRY_FILE} --server.address 0.0.0.0 --server.port ${PORT}
+ExecStart=${APP_DIR}/.venv/bin/streamlit run ${ENTRY_FILE} --server.address 0.0.0.0 --server.port ${PORT} --server.headless true
 Restart=always
 RestartSec=5
 
@@ -149,7 +173,7 @@ validate_project() {
   cd "$APP_DIR"
 
   if [ ! -f "$ENTRY_FILE" ]; then
-    err "没有找到入口文件: $ENTRY_FILE，请检查仓库内容或修改 ENTRY_FILE。"
+    err "没有找到入口文件: $ENTRY_FILE，请检查仓库内容，或修改脚本里的 ENTRY_FILE。"
   fi
 }
 
@@ -227,6 +251,7 @@ install_app() {
   echo "查看日志: journalctl -u $APP_NAME -f"
   echo "重启服务: sudo systemctl restart $APP_NAME"
 
+  show_access_url
   pause_wait
 }
 
@@ -259,6 +284,7 @@ update_app() {
   echo "查看状态: sudo systemctl status $APP_NAME"
   echo "查看日志: journalctl -u $APP_NAME -f"
 
+  show_access_url
   pause_wait
 }
 
@@ -304,6 +330,7 @@ show_status() {
   sudo systemctl --no-pager --full status "$APP_NAME" || true
   echo
   sudo systemctl --no-pager --full status xvfb || true
+  show_access_url
   pause_wait
 }
 
@@ -318,6 +345,7 @@ restart_app() {
   sudo systemctl restart xvfb
   sudo systemctl restart "$APP_NAME"
   ok "重启完成"
+  show_access_url
   pause_wait
 }
 
@@ -329,6 +357,7 @@ menu() {
     echo "===================================="
     echo "固定仓库: $REPO_URL"
     echo "安装目录: $APP_DIR"
+    echo "访问地址: http://$(get_server_ip):${PORT}"
     echo "===================================="
     echo "1) 安装"
     echo "2) 更新"
