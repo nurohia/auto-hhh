@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="abcard"
-REPO_URL="https://github.com/yourname/yourrepo.git"   # <<< 这里改成你的仓库地址
+REPO_URL=" https://github.com/nurohia/ABCard.git"   # <<< 这里改成你的仓库地址
 APP_DIR="$HOME/ABCard"
 PORT="8503"
 DISPLAY_NUM=":99"
