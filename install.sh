@@ -1,8 +1,9 @@
+cat > abcard_manager.sh <<'EOF'
 #!/usr/bin/env bash
 set -e
 
 APP_NAME="abcard"
-REPO_URL="https://github.com/nurohia/ABCard.git"
+REPO_URL="https://github.com/nurohia/ABCard.git" 
 APP_DIR="$HOME/ABCard"
 PORT="8503"
 DISPLAY_NUM=":99"
@@ -99,7 +100,7 @@ show_access_url() {
 }
 
 write_xvfb_service() {
-  sudo tee /etc/systemd/system/xvfb.service > /dev/null <<EOF
+  sudo tee /etc/systemd/system/xvfb.service > /dev/null <<EOF2
 [Unit]
 Description=Virtual Framebuffer X Server
 After=network.target
@@ -114,14 +115,14 @@ RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOF2
 }
 
 write_abcard_service() {
   local user_name
   user_name="$(whoami)"
 
-  sudo tee /etc/systemd/system/${APP_NAME}.service > /dev/null <<EOF
+  sudo tee /etc/systemd/system/${APP_NAME}.service > /dev/null <<EOF2
 [Unit]
 Description=ABCard Streamlit App
 After=network.target xvfb.service
@@ -141,7 +142,7 @@ RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOF2
 }
 
 install_dependencies() {
@@ -386,3 +387,4 @@ menu() {
 }
 
 menu
+EOF
